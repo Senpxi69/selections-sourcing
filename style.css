@@ -1075,7 +1075,9 @@ input, select, textarea, button { font-family: inherit; }
   .nav.open { display: flex; }
   .nav__list { flex-direction: column; gap: 2rem; text-align: center; }
   .nav__link { font-size: 1.3rem; }
-  .nav__toggle { display: flex; z-index: 999; }
+  .nav__toggle { display: none; }                 /* nav lives in quicknav on mobile */
+  .header__actions .btn--teal { display: none; }  /* CV button lives in quicknav on mobile */
+  .header__inner { justify-content: center; }      /* center the lone logo on mobile */
   .quicknav { display: block; }
   .hero { padding-top: 150px; }              /* clear the fixed header + quick nav */
   body .page-hero { padding-top: 165px; }    /* inner pages — `body` beats inline rule */
