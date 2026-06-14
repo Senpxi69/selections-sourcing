@@ -244,7 +244,9 @@ input, select, textarea, button { font-family: inherit; }
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  transition: transform .35s ease;
 }
+.quicknav--hidden { transform: translateY(calc(-100% - 90px)); }  /* slide up out of view */
 .quicknav::-webkit-scrollbar { display: none; }
 .quicknav__track {
   display: flex;
@@ -1087,7 +1089,27 @@ input, select, textarea, button { font-family: inherit; }
   .stats__grid { grid-template-columns: repeat(2, 1fr); }
   .stats__grid .stat { border-left: none; border-top: 1px solid var(--border); }
   .stats__grid .stat:first-child { border-top: none; }
-  .footer__grid { grid-template-columns: 1fr; }
+  /* Footer: brand (centered) on top, Services|Company side by side, Get In Touch full row */
+  .footer__grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 2.25rem 1.5rem;
+  }
+  .footer__brand {
+    grid-column: 1 / -1;
+    text-align: center;
+  }
+  .footer__brand .footer__logo { margin-inline: auto; }  /* block img needs auto margins to center */
+  .footer__socials { justify-content: center; }
+  .footer__col:last-child { grid-column: 1 / -1; }       /* Get In Touch: own full row, left-aligned */
+  /* Get In Touch: two phones share the top row, email + address span full width below */
+  /* .footer__col .footer__contact (0-2-0) must out-specify base .footer__col ul (0-1-1) */
+  .footer__col .footer__contact {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .85rem 1.25rem;
+    align-items: start;
+  }
+  .footer__col .footer__contact li:nth-child(n+3) { grid-column: 1 / -1; }  /* email + address full width */
   .hero__title { font-size: clamp(1.9rem, 6vw, 2.5rem); }
 }
 
@@ -1105,6 +1127,40 @@ input, select, textarea, button { font-family: inherit; }
 .fade-up.visible {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* ── Page-load intro: first screen eases in gently (CSS-only, no flash) ── */
+@keyframes intro-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes intro-fade {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  /* header drops in softly */
+  .header { animation: intro-fade .6s ease both; }
+  /* 'backwards' (not 'both') so the slide-up hide transform isn't locked by the intro */
+  .quicknav { animation: intro-fade .6s ease .1s backwards; }
+
+  /* hero content + inner-page hero: staggered rise */
+  .hero__content > *,
+  .hero__visual,
+  .page-hero__inner > * {
+    opacity: 0;
+    animation: intro-up .7s cubic-bezier(.22,.61,.36,1) both;
+  }
+  .hero__content > *:nth-child(1),
+  .page-hero__inner > *:nth-child(1) { animation-delay: .08s; }
+  .hero__content > *:nth-child(2),
+  .page-hero__inner > *:nth-child(2) { animation-delay: .16s; }
+  .hero__content > *:nth-child(3),
+  .page-hero__inner > *:nth-child(3) { animation-delay: .24s; }
+  .hero__content > *:nth-child(4),
+  .page-hero__inner > *:nth-child(4) { animation-delay: .32s; }
+  .hero__content > *:nth-child(5) { animation-delay: .40s; }
+  .hero__visual { animation-delay: .30s; }
 }
 
 

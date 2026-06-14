@@ -25,24 +25,72 @@ nav.querySelectorAll('.nav__link').forEach(link => {
   });
 });
 
-/* ── Active nav link on scroll ── */
-const sections = document.querySelectorAll('section[id]');
-const navLinks = document.querySelectorAll('.nav__link');
+/* ── Scroll spy + auto-hide quicknav (home page only) ── */
+// Only spy on true in-page anchors ("#jobs"). Page links (services.html) navigate
+// away, so they must NOT get a scroll highlight that implies they scroll in-page.
+function sectionIdFor(href) {
+  if (!href || !href.startsWith('#') || href.length < 2) return null;
+  return href.slice(1);
+}
 
-const onScroll = () => {
-  const scrollY = window.scrollY + 120;
-  sections.forEach(section => {
-    const top = section.offsetTop;
-    const height = section.offsetHeight;
-    const id = section.getAttribute('id');
-    if (scrollY >= top && scrollY < top + height) {
-      navLinks.forEach(l => l.classList.remove('active'));
-      const active = document.querySelector(`.nav__link[href="#${id}"]`);
-      if (active) active.classList.add('active');
-    }
+function makeSpy(links) {
+  const entries = [];
+  links.forEach(link => {
+    const id = sectionIdFor(link.getAttribute('href'));
+    const sec = id ? document.getElementById(id) : null;
+    if (sec) entries.push({ link, sec });
   });
+  if (!entries.length) return null;
+  let current = null;
+  return (onChange) => {
+    const line = window.scrollY + 140;
+    // pick the entry with the greatest offsetTop that's still above the scroll line
+    let active = entries[0], activeTop = -Infinity;
+    for (const e of entries) {
+      const top = e.sec.offsetTop;
+      if (top <= line && top >= activeTop) { active = e; activeTop = top; }
+    }
+    if (active.link !== current) {
+      links.forEach(l => l.classList.remove('active'));
+      active.link.classList.add('active');
+      current = active.link;
+      if (onChange) onChange(active.link);
+    }
+  };
+}
+
+const quicknavEl = document.querySelector('.quicknav');
+// Section spy only makes sense on the long single-page layout (the one with the #home hero)
+const onHome = !!document.getElementById('home');
+const navSpy = onHome ? makeSpy(document.querySelectorAll('.nav__link')) : null;
+const quicknavSpy = onHome ? makeSpy(document.querySelectorAll('.quicknav__chip')) : null;
+
+// keep the active chip scrolled into view within the horizontal quicknav bar
+function centerChip(chip, behavior = 'smooth') {
+  if (!quicknavEl) return;
+  const target = chip.offsetLeft - (quicknavEl.clientWidth - chip.offsetWidth) / 2;
+  quicknavEl.scrollTo({ left: Math.max(0, target), behavior });
+}
+
+// On load, bring the currently-active chip into view (e.g. "Contact" on the contact page,
+// where it's set statically and would otherwise sit off-screen to the right)
+const initialChip = document.querySelector('.quicknav__chip.active');
+if (initialChip) centerChip(initialChip, 'auto');
+
+let lastY = window.scrollY;
+const onScroll = () => {
+  const y = window.scrollY;
+  if (navSpy) navSpy();
+  if (quicknavSpy) quicknavSpy(centerChip);
+  // hide the quicknav when scrolling down into content, reveal it when scrolling up
+  if (quicknavEl) {
+    if (y > lastY && y > 160) quicknavEl.classList.add('quicknav--hidden');
+    else quicknavEl.classList.remove('quicknav--hidden');
+  }
+  lastY = y;
 };
 window.addEventListener('scroll', onScroll, { passive: true });
+onScroll();
 
 /* ── Fade-up on scroll ── */
 const fadeEls = document.querySelectorAll(
